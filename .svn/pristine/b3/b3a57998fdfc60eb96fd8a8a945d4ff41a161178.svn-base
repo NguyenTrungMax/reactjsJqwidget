@@ -1,0 +1,288 @@
+import * as React from 'react';
+import JqxForm, { IFormProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxform';
+import JqxLayout, { ILayoutProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxlayout';
+import JqxInput, { IInputProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput';
+import JqxComboBox, { IComboBoxProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcombobox';
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons';
+import JqxButtonGroup, { IButtonGroupProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttongroup';
+import JqxTabs, { ITabsProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxtabs';
+import JqxCheckBox, { ICheckBoxProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcheckbox';
+import JqxDateTimeInput, { IDateTimeInputProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatetimeinput';
+import JqxDataTable, { IDataTableProps, jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatatable';
+import JqxTextArea, { ITextAreaProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxtextarea';
+import JqxDropDownList, { IDropDownListProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist';
+import { ApiClient } from "../api";
+import JqxNotification, { INotificationProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxnotification';
+import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow';
+let api = new ApiClient();
+interface MyComponentProps { /* declare your component's props here */ }
+interface MyComponentState {
+    templateDiaChi: Array<Object>,
+    dmTinh: [],
+    dmHuyen: [],
+    dmXa: [],
+    dataFormDiaChi: {}
+}
+
+// create a new instance of the jqx.dataAdapter.
+
+// class App extends React.PureComponent<{}, ITabsProps> {
+class DiaChi extends React.Component<MyComponentProps, MyComponentState> {
+    private formDiaChi = React.createRef<JqxForm>();
+    // private formTD = React.createRef<JqxForm>();
+    // private formMDSD = React.createRef<JqxForm>();
+    // private myLayout = React.createRef<JqxLayout>();
+    // private myComboBox = React.createRef<JqxComboBox>();
+    // private myButtonGroup = React.createRef<JqxButtonGroup>();
+    // private myDataTable = React.createRef<JqxDataTable>();
+    // private cbHuyen = React.createRef<JqxDropDownList>();
+    // private cbXa = React.createRef<JqxDropDownList>();
+    // private myNotification = React.createRef<JqxNotification>();
+    private labelWidth = '110px';
+    _isMounted = false;
+
+
+    constructor(props) {
+        super(props);
+        let me = this;
+        this.state = {
+            templateDiaChi:
+                [
+                    {
+                        type: 'blank'
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '35%',
+                                bind: 'tinh',
+                                name: 'tinh',
+                                type: 'custom',
+                                label: 'Thành phố/Tỉnh',
+                                labelWidth: this.labelWidth,
+                                width: '100%',
+                                init: function (component) {
+                                    component.jqxDropDownList({
+                                        source: me.state.dmTinh,
+                                        displayMember: 'ten',
+                                        filterPlaceHolder: 'Gõ để tìm kiếm',
+                                        valueMember: 'ma',
+                                        width: '100%',
+                                        searchMode: 'containsignorecase',
+                                        enableBrowserBoundsDetection: true,
+                                        filterable: true
+                                    }).on({
+                                        change: me.thanhTinhOnChange.bind(me)
+                                    })
+                                }
+                            },
+                            {
+                                columnWidth: '35%',
+                                bind: 'huyen',
+                                name: 'huyen',
+                                type: 'custom',
+                                label: 'Quận/Huyện',
+                                labelWidth: this.labelWidth,
+                                width: '100%',
+                                init: function (component) {
+                                    component.jqxDropDownList({
+                                        source: me.state.dmHuyen,
+                                        displayMember: 'ten',
+                                        filterPlaceHolder: 'Gõ để tìm kiếm',
+                                        valueMember: 'ma',
+                                        width: '100%',
+                                        searchMode: 'containsignorecase',
+                                        enableBrowserBoundsDetection: true,
+                                        filterable: true
+                                    }).on({
+                                        change: me.quanHuyenOnChange.bind(me)
+                                    });
+                                }
+                            },
+                            {
+                                columnWidth: '30%',
+                                bind: 'xa',
+                                name: 'xa',
+                                type: 'custom',
+                                label: 'Phường/Xã',
+                                labelWidth: this.labelWidth,
+                                width: '100%',
+                                init: function (component) {
+                                    component.jqxDropDownList({
+                                        source: me.state.dmXa,
+                                        displayMember: 'ten',
+                                        filterPlaceHolder: 'Gõ để tìm kiếm',
+                                        valueMember: 'ma',
+                                        width: '100%',
+                                        searchMode: 'containsignorecase',
+                                        enableBrowserBoundsDetection: true,
+                                        filterable: true
+                                    }).on({
+                                        change: me.phuongXaOnChange.bind(me)
+                                    });
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '35%',
+                                type: 'text',
+                                label: 'Số nhà',
+                                bind: 'sonha',
+                                name: 'sonha',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '35%',
+                                type: 'text',
+                                label: 'Ngõ phố',
+                                bind: 'ngopho',
+                                name: 'ngopho',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '30%',
+                                type: 'text',
+                                label: 'Chọn đường',
+                                bind: 'duongpho',
+                                name: 'duongpho',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '70%',
+                                type: 'text',
+                                label: 'Chọn khu phố',
+                                bind: 'khupho',
+                                name: 'khupho',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '30%',
+                                type: 'boolean',
+                                label: 'Là địa chỉ cũ',
+                                bind: 'sotocu',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '100%',
+                                type: 'text',
+                                label: 'Địa chỉ chi tiết',
+                                bind: 'diachi',
+                                name: 'diachi',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            }
+                        ]
+                    }
+                ],
+            dmTinh: [],
+            dmHuyen: [],
+            dmXa: [],
+            dataFormDiaChi: {}
+        }
+        this.loadDMTinh = this.loadDMTinh.bind(this);
+        this.loadDMHuyen = this.loadDMHuyen.bind(this);
+        this.loadDMXa = this.loadDMXa.bind(this);
+        this.thanhTinhOnChange = this.thanhTinhOnChange.bind(this);
+        this.quanHuyenOnChange = this.quanHuyenOnChange.bind(this);
+        this.phuongXaOnChange = this.phuongXaOnChange.bind(this);
+    }
+    componentDidMount() {
+        this._isMounted = true;
+        this.loadDMTinh();
+        setTimeout(() => {
+            this.formDiaChi.current!.refresh();
+        }, 500);
+    }
+    componentWillUnmount() {
+        this._isMounted = false;
+    }
+    loadDMTinh() {
+        let me = this;
+        api.get("dvhc/ma_ct/VN?lowercase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ dmTinh: data });
+            }
+        });
+    }
+    loadDMHuyen(maTinh) {
+        let me = this;
+        api.get("dvhc/ma_ct/" + maTinh + "?lowercase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ dmHuyen: data });
+                let ddlHuyen = this.formDiaChi.current.getComponentByName('huyen');
+                console.log(ddlHuyen);
+                ddlHuyen.jqxDropDownList({ source: data });
+            }
+        });
+    }
+    loadDMXa(mahuyen) {
+        let me = this;
+        api.get("dvhc/ma_ct/" + mahuyen + "?lowercase=true").then(data => {
+            if (this._isMounted) {
+                // this.setState({ dmxa: dmxa });
+                let ddl = me.formDiaChi.current!.getComponentByName("xa");
+                ddl.jqxDropDownList({ source: data });
+            }
+        });
+    }
+    thanhTinhOnChange(e: Event): void {
+        let maTinh = e['args'].item.value;
+        console.log(e);
+        console.log(maTinh);
+        this.loadDMHuyen(maTinh);
+    }
+    quanHuyenOnChange(e: Event): void {
+        let mahuyen = e['args'].item.value;
+        this.loadDMXa(mahuyen);
+    }
+    phuongXaOnChange(e: Event): void {
+        let mahuyen = e['args'].item.value;
+        console.log("hàm phường xã onchange dòng 291");
+    }
+    public render() {
+        return (
+            <div className='container-fluid'>
+                <div className="row">
+                    <JqxForm ref={this.formDiaChi} style={{ width: 'auto', height: 'auto' }}
+                        template={this.state.templateDiaChi} backgroundColor={'white'} borderColor={'0px'}
+                        value={this.state.dataFormDiaChi} padding={{ left: 10, top: 10, right: 10, bottom: 10 }}
+                    >
+                    </JqxForm>
+                </div>
+                <div className="row d-flex justify-content-center mt-2">
+                    <JqxButton width={100} value={'Mới'} textPosition={'center'} />
+                    <JqxButton width={100} value={'Chọn'} />
+                </div>
+            </div>
+        );
+    }
+}
+export default DiaChi;

@@ -1,0 +1,34 @@
+{
+  "name": "hnlis",
+  "author": "hdchinh",
+  "dependencies": {
+    "@types/react": "^16.8.1",
+    "@types/react-dom": "^16.0.11",
+    "awesome-typescript-loader": "^5.2.1",
+    "axios": "^0.19.0",
+    "css-loader": "^2.1.0",
+    "html-webpack-plugin": "^3.2.0",
+    "img-loader": "^3.0.1",
+    "jqwidgets-scripts": "^7.2.0",
+    "raw-loader": "^1.0.0",
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0",
+    "style-loader": "^0.23.1",
+    "typescript": "^3.3.1",
+    "uglifyjs-webpack-plugin": "^2.1.3",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.7.2"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --mode development --open --hot"
+  },
+  "description": "Please refer to its documentation:   - [Getting Started](https://github.com/jqwidgets/create-jqwidgets-react-tsx-app/blob/master/README.md#getting-started)    - [jQWidgets React TSX Documentation](http://www.jqwidgets.com/reactjs-components-documentation/)",
+  "version": "1.0.0",
+  "main": "webpack.config.js",
+  "devDependencies": {},
+  "keywords": [
+    "hnlis_form"
+  ],
+  "license": "ISC"
+}

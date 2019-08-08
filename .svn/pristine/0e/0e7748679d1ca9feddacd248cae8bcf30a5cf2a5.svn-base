@@ -1,0 +1,721 @@
+import * as React from 'react';
+import JqxForm, { IFormProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxform';
+import JqxLayout, { ILayoutProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxlayout';
+import JqxInput, { IInputProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput';
+import JqxComboBox, { IComboBoxProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcombobox';
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons';
+import JqxButtonGroup, { IButtonGroupProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttongroup';
+import JqxTabs, { ITabsProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxtabs';
+import JqxCheckBox, { ICheckBoxProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcheckbox';
+import JqxDateTimeInput, { IDateTimeInputProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatetimeinput';
+import JqxDataTable, { IDataTableProps, jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatatable';
+import JqxTextArea, { ITextAreaProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxtextarea';
+import JqxDropDownList, { IDropDownListProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist';
+import { ApiClient } from "./api";
+import JqxNotification, { INotificationProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxnotification';
+let api = new ApiClient();
+interface MyComponentProps { /* declare your component's props here */ }
+interface MyComponentState {
+    width: string,
+    // labelWidth: string,
+    source: Array<string>,
+    templateTD: Array<Object>,
+    columns: Array<Object>,
+    value: Object,
+    templateMDSD: Array<Object>,
+    tableSource: Object,
+    formData: Object,
+    dmhuyen: Array<Object>,
+    dmxa: Array<Object>,
+    dmMdsd: Array<object>,
+    listAllMdsdByIdThuaDat: Array<object>,
+    formDataMdsd: Object
+    // loading: boolean
+}
+
+const sourceMDSD = {
+    localdata: [],
+    dataFields: [
+        { name: 'mdsd', type: 'string', map: '0' },
+        { name: 'dientich', type: 'string', map: '1' }
+    ],
+    datatype: 'array'
+};
+
+// create a new instance of the jqx.dataAdapter.
+
+// class App extends React.PureComponent<{}, ITabsProps> {
+class App extends React.Component<MyComponentProps, MyComponentState> {
+    private myForm = React.createRef<JqxForm>();
+    private formTD = React.createRef<JqxForm>();
+    private formMDSD = React.createRef<JqxForm>();
+    private myLayout = React.createRef<JqxLayout>();
+    private myComboBox = React.createRef<JqxComboBox>();
+    private myButtonGroup = React.createRef<JqxButtonGroup>();
+    private myDataTable = React.createRef<JqxDataTable>();
+    private cbHuyen = React.createRef<JqxDropDownList>();
+    private cbXa = React.createRef<JqxDropDownList>();
+    private myNotification = React.createRef<JqxNotification>();
+    private labelWidth = '110px';
+    _isMounted = false;
+
+
+    constructor(props) {
+        super(props);
+        let me = this;
+        this.state = {
+            width: '100%',
+            formData: {},
+            dmhuyen: [],
+            dmxa: [],
+            tableSource: new jqx.dataAdapter(sourceMDSD),
+            columns: [
+                { text: 'Mục đích sử dụng', dataField: 'mdsd' },
+                { text: 'Diện tích', dataField: 'dientich' }
+            ],
+            source: [],
+            templateTD:
+                [
+                    {
+                        columns: [
+                            {
+                                columnWidth: '25%',
+                                bind: 'huyen',
+                                name: 'huyen',
+                                type: 'custom',
+                                label: 'Quận/huyện',
+                                labelWidth: this.labelWidth,
+                                width: '100%',
+                                init: function (component) {
+                                    component.jqxDropDownList({
+                                        source: me.state.dmhuyen,
+                                        displayMember: 'ten',
+                                        filterPlaceHolder: 'Gõ để tìm kiếm',
+                                        valueMember: 'ma',
+                                        width: '100%',
+                                        searchMode: 'containsignorecase',
+                                        enableBrowserBoundsDetection: true,
+                                        filterable: true
+                                    }).on({
+                                        change: me.quanHuyenOnChange.bind(me)
+                                    })
+                                }
+                            },
+                            {
+                                columnWidth: '25%',
+                                bind: 'xa',
+                                type: 'custom',
+                                label: 'Xã/phường',
+                                name: 'xa',
+                                labelWidth: this.labelWidth,
+                                width: '100%',
+                                init: function (component) {
+                                    component.jqxDropDownList({
+                                        source: me.state.dmxa,
+                                        displayMember: 'ten',
+                                        filterPlaceHolder: 'Gõ để tìm kiếm',
+                                        valueMember: 'ma',
+                                        width: '100%',
+                                        searchMode: 'containsignorecase',
+                                        enableBrowserBoundsDetection: true,
+                                        filterable: true
+                                    });
+                                }
+                            },
+                            {
+                                columnWidth: '25%',
+                                bind: 'sonha',
+                                type: 'text',
+                                label: 'Số nhà',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '25%',
+                                type: 'text',
+                                label: 'Số thửa',
+                                bind: 'sothua',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '25%',
+                                bind: 'soto',
+                                type: 'text',
+                                label: 'Số tờ',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '25%',
+                                type: 'text',
+                                label: 'Diện tích',
+                                bind: 'dientich',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%',
+                                required: true
+                            },
+                            {
+                                columnWidth: '25%',
+                                type: 'text',
+                                label: 'DT pháp lý',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%',
+                                required: true
+                            }
+
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '25%',
+                                type: 'text',
+                                label: 'Số thửa cũ',
+                                bind: 'sothuacu',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '25%',
+                                type: 'text',
+                                label: 'Số tờ cũ',
+                                bind: 'sotocu',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '8%',
+                                type: 'blank'
+                            },
+                            {
+                                columnWidth: '20%',
+                                bind: 'sd_sohieuto',
+                                type: 'boolean',
+                                label: 'Sử dụng số hiệu tờ,thửa cũ',
+                                labelPosition: 'right',
+                                width: '100%',
+                            },
+                            {
+                                columnWidth: '10%',
+                                type: 'boolean',
+                                bind: 'ddt',
+                                label: 'Đất đô thị',
+                                labelPosition: 'right',
+                                width: '100%',
+                            },
+                            {
+                                bind: 'kdc',
+                                columnWidth: '10%',
+                                type: 'boolean',
+                                label: 'Khu dân cư',
+                                labelPosition: 'right',
+                                width: '100%'
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '48%',
+                                type: 'text',
+                                label: 'Tài liệu đo đạc',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'left',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '2%',
+                                type: 'custom',
+                                init: function (component) {
+                                    component.jqxButton({
+                                        imgPosition: 'left',
+                                        width: '',
+                                        imgSrc: './src/images/icon-plus.png'
+                                    }).parent().css('padding-left', '0px').css('padding-right', '0px');
+                                }
+                            },
+                            {
+                                columnWidth: '50%',
+                                type: 'text',
+                                label: 'Vị trí',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                width: '100%'
+                            }]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '48%',
+                                type: 'text',
+                                label: 'NG giao đất',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                align: 'right',
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '2%',
+                                type: 'custom',
+                                init: function (component) {
+                                    component.jqxButton({
+                                        imgPosition: 'left',
+                                        width: '',
+                                        imgSrc: './src/images/icon-plus.png'
+                                    }).parent().css('padding-left', '0px').css('padding-right', '0px');
+
+                                }
+                            },
+                            {
+                                columnWidth: '50%',
+                                type: 'text',
+                                label: 'NG khác',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                width: '100%'
+                            }
+                        ]
+                    },
+                    {
+                        columns: [
+                            {
+                                columnWidth: '47.9%',
+                                type: 'text',
+                                label: 'Thuộc dự án',
+                                labelPosition: 'left',
+                                labelWidth: this.labelWidth,
+                                width: '100%'
+                            },
+                            {
+                                columnWidth: '2%',
+                                type: 'custom',
+                                init: function (component) {
+                                    component.jqxButton({
+                                        imgPosition: 'left',
+                                        width: '',
+                                        imgSrc: './src/images/icon-plus.png'
+                                    }).parent().css('padding-left', '0px').css('padding-right', '0px');
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        columns: [{
+                            type: 'text',
+                            label: 'Địa chỉ',
+                            labelPosition: 'left',
+                            labelWidth: this.labelWidth,
+                            width: '100%'
+                        }, {
+                            columnWidth: '2%',
+                            type: 'custom',
+                            init: function (component) {
+                                component.jqxButton({
+                                    imgPosition: 'left',
+                                    width: '',
+                                    imgSrc: './src/images/icon-plus.png'
+                                }).parent().css('padding-left', '0px').css('padding-right', '0px');
+                            }
+                        }
+                        ]
+                    }
+                ],
+            value: {
+                'textBoxValue': 'text box value',
+                'passwordBoxValue': 'password box',
+                'numberBoxValue': 67.44
+            },
+            templateMDSD: [
+                {
+                    type: 'blank'
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '50%',
+                            bind: 'mdsd',
+                            type: 'custom',
+                            name: 'mdsd',
+                            label: 'MĐSD',
+                            required: true,
+                            labelWidth: this.labelWidth,
+                            width: '100%',
+                            component: 'jqxDropDownList',
+                            init: function (component) {
+                                component.jqxDropDownList({
+                                    source: me.state.dmMdsd,
+                                    displayMember: 'ten',
+                                    filterPlaceHolder: 'Gõ để tìm kiếm',
+                                    valueMember: 'ma',
+                                    width: '100%',
+                                    searchMode: 'containsignorecase',
+                                    enableBrowserBoundsDetection: true,
+                                    filterable: true
+                                })
+                            }
+                        },
+                        {
+                            columnWidth: '50%',
+                            bind: 'mdsd_dt',
+                            type: 'text',
+                            label: 'Diện tích',
+                            labelPosition: 'left',
+                            labelWidth: this.labelWidth,
+                            align: 'left',
+                            width: '100%'
+                        }
+                    ]
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '50%',
+                            bind: 'mdsdqh',
+                            type: 'custom',
+                            label: 'MĐSD QH',
+                            name: 'mdsdqh',
+                            required: true,
+                            labelWidth: this.labelWidth,
+                            width: '100%',
+                            component: 'jqxDropDownList',
+                            init: function (component) {
+                                component.jqxDropDownList({
+                                    source: me.state.dmMdsd,
+                                    displayMember: 'ten',
+                                    filterPlaceHolder: 'Gõ để tìm kiếm',
+                                    valueMember: 'ma',
+                                    width: '100%',
+                                    searchMode: 'containsignorecase',
+                                    enableBrowserBoundsDetection: true,
+                                    filterable: true
+                                })
+                            }
+                        },
+                        {
+                            columnWidth: '30%',
+                            type: 'text',
+                            bind: 'thsd',
+                            label: 'Thời hạn SD',
+                            labelPosition: 'left',
+                            labelWidth: this.labelWidth,
+                            align: 'left',
+                            width: '100%'
+                        },
+                        {
+                            columnWidth: '20%',
+                            type: 'date',
+                            bind: 'ngay_thoihan',
+                            // label: 'Thời hạn SD',
+                            formatString: 'dd/MM/yyyy',
+                            labelPosition: 'left',
+                            // labelWidth: '30%',
+                            align: 'left',
+                            width: '100%'
+                        }
+                    ]
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '50%',
+                            bind: 'mdsdphu',
+                            type: 'custom',
+                            name: 'mdsdphu',
+                            label: 'MĐSD Phụ',
+                            required: true,
+                            labelWidth: this.labelWidth,
+                            width: '100%',
+                            component: 'jqxDropDownList',
+                            init: function (component) {
+                                component.jqxDropDownList({
+                                    source: me.state.dmMdsd,
+                                    displayMember: 'ten',
+                                    filterPlaceHolder: 'Gõ để tìm kiếm',
+                                    valueMember: 'ma',
+                                    width: '100%',
+                                    searchMode: 'containsignorecase',
+                                    enableBrowserBoundsDetection: true,
+                                    filterable: true
+                                })
+                            }
+                        },
+                        {
+                            columnWidth: "14%",
+                            type: 'blank'
+                        },
+                        {
+                            columnWidth: '18%',
+                            bind: 'sdc',
+                            type: 'boolean',
+                            label: 'Sử dụng chung',
+                            labelPosition: 'right',
+                            width: '100%',
+                        },
+                        {
+                            columnWidth: '18%',
+                            type: 'boolean',
+                            bind: 'dtc',
+                            label: 'Đất tranh chấp',
+                            labelPosition: 'right',
+                            width: '100%',
+                        },
+                    ]
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '50%',
+                            type: 'text',
+                            label: 'NG giao đất',
+                            bind: 'nggiaodat_mdsd',
+                            rowHeight: '50px',
+                            labelPosition: 'left',
+                            labelWidth: this.labelWidth,
+                            align: 'right',
+                            width: '100%'
+                        },
+                        {
+                            columnWidth: '50%',
+                            bind: 'ngkhac',
+                            type: 'text',
+                            label: 'NG khác',
+                            labelPosition: 'left',
+                            labelWidth: this.labelWidth,
+                            width: '100%'
+                        }]
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '100%',
+                            type: 'text',
+                            label: 'MĐSD chi tiết',
+                            labelWidth: this.labelWidth,
+                            width: '100%'
+                        }]
+                },
+                {
+                    columns: [
+                        {
+                            columnWidth: '100%',
+                            bind: 'ghichu',
+                            type: 'text',
+                            label: 'Ghi chú',
+                            labelWidth: this.labelWidth,
+                            width: '100%',
+
+                        }]
+                }
+            ],
+            dmMdsd: [],
+            listAllMdsdByIdThuaDat: [],
+            formDataMdsd: {}
+        }
+        this.getDmMdsdThuaDat = this.getDmMdsdThuaDat.bind(this);
+        this.getAllMdsdByIdThuaDat = this.getAllMdsdByIdThuaDat.bind(this);
+        this.getMdsdByIdMdsd = this.getMdsdByIdMdsd.bind(this);
+        this.onRowClickMdsd = this.onRowClickMdsd.bind(this);
+    }
+
+    private quanHuyenOnChange(e: Event): void {
+        let mahuyen = e['args'].item.value;
+        this.loadDMXa(mahuyen);
+    }
+    componentDidMount() {
+        this._isMounted = true;
+        this.loadDMHuyen();
+        this.thuadat_ct();
+        this.getDmMdsdThuaDat();
+        setTimeout(() => {
+            this.formTD.current!.refresh();
+            this.formMDSD.current!.refresh();
+        }, 500);
+    }
+    componentWillUnmount() {
+        this._isMounted = false;
+    }
+    loadDMHuyen() {
+        let me = this;
+        api.get("dvhc/ma_ct/01?lowercase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ dmhuyen: data });
+            }
+        });
+    }
+    loadDMXa(mahuyen) {
+        let me = this;
+        api.get("dvhc/ma_ct/" + mahuyen + "?lowercase=true").then(data => {
+            if (this._isMounted) {
+                // this.setState({ dmxa: dmxa });
+                let ddl = me.formTD.current!.getComponentByName("xa");
+                ddl.jqxDropDownList({ source: data });
+            }
+        });
+    }
+    thuadat_ct() {
+        let me = this;
+        api.get("thuadat/getbyid/20190301402114?lowercase=true").then(data => {
+            if (this._isMounted) {
+                // console.log(formData[0].huyen);
+                // let dlhuyen = me.formTD.current!.getComponentByName('huyen');
+                // console.log(dlhuyen);
+                // dlhuyen.val(formData[0].huyen);
+                // console.log(me.formTD);
+                this.setState({ formData: data[0] });
+                me.formTD.current!.val(data[0]);
+                this.getAllMdsdByIdThuaDat();
+            }
+        });
+    }
+    getDmMdsdThuaDat() {
+        let me = this;
+        api.get("thuadat/mdsd?lowerCase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ dmMdsd: data });
+            }
+        });
+    }
+    // truyền vào số id thửa đất
+    getAllMdsdByIdThuaDat() {
+        api.get("thuadat/20190301402114/mdsd?flag=1&b_tu=1&b_den=1000&lowerCase=true").then(data => {
+            let sourTableMdsd = {
+                localdata: [],
+                dataFields: [],
+                datatype: 'array'
+            };
+            sourTableMdsd.localdata = data.bang_mdsd;
+            if (this._isMounted) {
+                this.setState({ tableSource: new jqx.dataAdapter(sourTableMdsd) })
+            }
+        });
+    }
+    getMdsdByIdMdsd(mdsdId) {
+        let me = this;
+        api.get("thuadat/20190301402123/lowerCase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ formDataMdsd: data[0] });
+                let ddlMdsd = me.formMDSD.current!.getComponentByName("mdsd");
+                console.log(ddlMdsd);
+                me.formMDSD.current!.val(data[0]);
+            }
+        });
+    }
+    onRowClickMdsd(Event) {
+        let mdsdid = Event.args.row.mdsdid;
+        console.log(mdsdid);
+        if (mdsdid === "" || mdsdid === null) {
+            console.log("mdsdid không được cung cấp. Lỗi dòng 615");
+            return false;
+        } else this.getMdsdByIdMdsd(mdsdid);
+
+    }
+    private onButtonclick(e: Event): void {
+        let btnid = e['args'].button[0].id;
+        switch (btnid) {
+            case 'save':
+                this.save();
+        }
+    }
+    public save() {
+        console.log('save');
+        console.log(this.formTD);
+        console.log(this.myNotification.current);
+        let formInstance = this.formTD.current.getInstance();
+        let formVal = formInstance._getValue();
+        console.log(formVal);
+    }
+    public render() {
+        return (
+            <div className='container-fluid'>
+                <JqxNotification ref={this.myNotification}
+                    autoOpen={true} width={200}>
+                    Sample Notification
+      </JqxNotification>
+                <JqxTabs
+                    width={'100%'}
+                    position={"top"}
+                    animationType={"none"}
+                    selectionTracker={false}
+                >
+                    <ul>
+                        <li style={{ marginLeft: 30 }}>Thông tin chung</li>
+                        <li>Tài sản thuộc thửa</li>
+                        <li>Địa chỉ thửa đất</li>
+                    </ul>
+                    <div style={{ paddingTop: '10px' }} >
+                        <ul className='container-fluid'>
+                            <div className="jqx-menu-item-separator jqx-rc-all" >
+                                <span style={{ position: 'relative', top: '-8px', left: '20px', transform: 'translateY(-50%)', paddingLeft: '10px', backgroundColor: '#fff' }}>Thông tin thửa đất</span>
+                            </div>
+                            <JqxForm ref={this.formTD} style={{ width: '100%', height: 'auto' }}
+                                template={this.state.templateTD} backgroundColor={'white'} borderColor={'0px'}
+                                value={this.state.formData} padding={{ left: 10, top: 10, right: 10, bottom: 10 }}
+                            >
+                            </JqxForm>
+                            <div className="jqx-menu-item-separator jqx-rc-all" >
+                                <span style={{ position: 'relative', top: '-8px', left: '20px', transform: 'translateY(-50%)', paddingLeft: '10px', backgroundColor: '#fff' }}>Mục đích sử dụng của thửa đất</span>
+                            </div>
+                            <div className="row">
+                                <div className="col-sm-7" >
+                                    <JqxForm ref={this.formMDSD} style={{ width: '100%', height: 'auto' }}
+                                        template={this.state.templateMDSD} backgroundColor={'white'} borderColor={'0px'}
+                                        value={this.state.formDataMdsd} padding={{ left: 10, top: 10, right: 10, bottom: 10 }}
+                                    />
+                                </div>
+                                <div className="col-sm-5" >
+                                    <JqxDataTable ref={this.myDataTable} columnsResize={true}
+                                        width={'100%'} pageable={true} altRows={true} pagerMode={'advanced'} pageSize={5} height={'250px'}
+                                        source={this.state.tableSource} columns={this.state.columns}
+                                        onRowClick={this.onRowClickMdsd}
+                                    />
+                                </div>
+                            </div>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul>
+                            <li style={{ listStyle: 'none', fontWeight: 'bold' }}>Mục đích sử dụng của thửa đất</li>
+                            <li className="jqx-menu-item-separator jqx-rc-all"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3> Địa chỉ thửa</h3>
+                    </div>
+                </JqxTabs>
+                <div className="row">
+                    <JqxButtonGroup ref={this.myButtonGroup} style={{ 'marginLeft': '156px' }} onButtonclick={this.onButtonclick.bind(this)}
+                    >
+                        <button id='Left' value='Chọn' ></button>
+                        <button style={{ 'width': '150px', marginLeft: '5px !important' }} id='Center' value='Chọn cùng tài sản'></button>
+                        <button style={{ 'width': '70px', marginLeft: '5px' }} id='find' value='Tìm kiếm'></button>
+                        <button id='save' value='Ghi'></button>
+                        <button id='new' value='Mới'></button>
+                        <button id='del' value='Xoá'></button>
+                    </JqxButtonGroup>
+                </div>
+            </div>
+        );
+
+    }
+}
+export default App;

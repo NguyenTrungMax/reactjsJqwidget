@@ -1,0 +1,72 @@
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+// import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css';
+import JqxForm, { IFormProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxform';
+
+export default class FormThuadat extends React.PureComponent<{}, IFormProps> {
+    private myForm = React.createRef<JqxForm>();
+
+    constructor(props: {}) {
+        super(props);
+
+        this.state = {
+            template:
+                [{
+                    bind: 'textBoxValue',
+                    type: 'text',
+                    label: 'Text input',
+                    labelPosition: 'left',
+                    labelWidth: '30%',
+                    align: 'left',
+                    // width: '250px',
+                    required: true
+                },
+                {
+                    bind: 'passwordBoxValue',
+                    type: 'password',
+                    label: 'Password input',
+                    labelPosition: 'left',
+                    labelWidth: '30%',
+                    align: 'left',
+                    // width: '250px',
+                    required: true
+                },
+                {
+                    bind: 'numberBoxValue',
+                    type: 'number',
+                    label: 'Number input',
+                    labelPosition: 'left',
+                    labelWidth: '30%',
+                    align: 'left',
+                    // width: '250px',
+                    required: true
+                },
+                {
+                    name: 'submitButton',
+                    type: 'button',
+                    text: 'Submit Form Data',
+                    align: 'right',
+                    padding: { left: 0, top: 5, bottom: 5, right: 40 }
+                }],
+            value: {
+                'textBoxValue': 'text box value',
+                'passwordBoxValue': 'password box',
+                'numberBoxValue': 67.44
+            }
+        }
+    }
+
+    public render() {
+        return (
+            <JqxForm ref={this.myForm} style={{ width: 450, height: 'auto' }}
+                template={this.state.template} value={this.state.value}
+            />
+        );
+    }
+
+    private onButtonClick(event) {
+        alert('Button Clicked...');
+    }
+}
+// export default frmThuaDat;

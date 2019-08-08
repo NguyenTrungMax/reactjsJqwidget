@@ -1,0 +1,165 @@
+import * as React from 'react';
+import JqxTextArea, { ITextAreaProps } from "jqwidgets-scripts/jqwidgets-react-tsx/jqxtextarea";
+import JqxDropDownList, { IDropDownListProps } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist';
+import JqxDataTable, { IDataTableProps, jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatatable';
+import { ApiClient } from "../api";
+let api = new ApiClient();
+interface MyComponentProps { /* declare your component's props here */ }
+interface MyComponentState {
+    dmTinh: [],
+    dmHuyen: [],
+    dmXa: []
+}
+
+class DiaChiMoi extends React.Component<MyComponentProps, MyComponentState> {
+    private myTextArea = React.createRef<JqxTextArea>();
+    private ddlTinh = React.createRef<JqxDropDownList>();
+    private ddlHuyen = React.createRef<JqxDropDownList>();
+    private ddlXa = React.createRef<JqxDropDownList>();
+    _isMounted = false;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            dmTinh: [],
+            dmHuyen: [],
+            dmXa: []
+        }
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.loadDMTinh = this.loadDMTinh.bind(this);
+        this.loadDMHuyen = this.loadDMHuyen.bind(this);
+        this.loadDMXa = this.loadDMXa.bind(this);
+        this.thanhTinhOnChange = this.thanhTinhOnChange.bind(this);
+        this.quanHuyenOnChange = this.quanHuyenOnChange.bind(this);
+        this.phuongXaOnChange = this.phuongXaOnChange.bind(this);
+    }
+    componentDidMount() {
+        this._isMounted = true;
+        this.loadDMTinh();
+    }
+    // ddlTinhRef = (ref) => {
+    //       this.ddlTinh = ref;
+    //    }
+    handleSubmit(event) {
+        console.log(event);
+        event.preventDefault();
+    }
+    loadDMTinh() {
+        let me = this;
+        api.get("dvhc/ma_ct/VN?lowercase=true").then(data => {
+            if (this._isMounted) {
+                this.setState({ dmTinh: data });
+            }
+        });
+    }
+    loadDMHuyen(maTinh) {
+        let me = this;
+        console.log('load dm huyen');
+        api.get("dvhc/ma_ct/" + maTinh + "?lowercase=true").then(data => {
+            if (this._isMounted) {
+                this.ddlHuyen.current.clear();
+                this.ddlXa.current.clear();
+                data.forEach(item => {
+                    this.ddlHuyen.current.addItem(item);
+                });
+            }
+        });
+    }
+    loadDMXa(mahuyen) {
+        let me = this;
+        api.get("dvhc/ma_ct/" + mahuyen + "?lowercase=true").then(data => {
+            this.ddlXa.current.clear();
+            data.forEach(item => {
+                this.ddlXa.current.addItem(item);
+            });
+        });
+    }
+    thanhTinhOnChange(e: Event): void {
+        let maTinh = e['args'].item.value;
+        console.log('on change');
+        e.preventDefault();
+        this.loadDMHuyen(maTinh);
+        // e.preventDefault();
+    }
+    quanHuyenOnChange(e: Event): void {
+        let mahuyen = e['args'].item.value;
+        this.loadDMXa(mahuyen);
+    }
+    phuongXaOnChange(e: Event): void {
+        let mahuyen = e['args'].item.value;
+        console.log("hàm phường xã onchange dòng 291");
+    }
+    render() {
+        return (
+            <div className="row">
+                <form onSubmit={this.handleSubmit} style={{
+                    margin: "50px 50px",
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                    padding: 20
+                }}
+                >
+                    <div className="row">
+                        <div className="col-sm-4">
+                            <div className="form-group row">
+                                <label className="col-sm-2 col-form-label">Email</label>
+                                <div className="col-sm-10">
+                                    <JqxDropDownList ref={this.ddlTinh}
+                                        width={'100%'} source={this.state.dmTinh}
+                                        // dropDownHeight={200}
+                                        displayMember="ten"
+                                        valueMember="ma"
+                                        filterable={true}
+                                        filterPlaceHolder="Type for search"
+                                        searchMode="containsignorecase"
+                                        onChange={this.thanhTinhOnChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-sm-4">
+                            <div className="form-group row">
+                                <label className="col-sm-2 col-form-label">Email</label>
+                                <div className="col-sm-10">
+                                    <JqxDropDownList ref={this.ddlHuyen}
+                                        width={'100%'} height={25}
+                                        displayMember="ten"
+                                        valueMember="ma"
+                                        filterable={true}
+                                        filterPlaceHolder="Type for search"
+                                        searchMode="containsignorecase"
+                                        onChange={this.quanHuyenOnChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-sm-4">
+                            <div className="form-group row">
+                                <label className="col-sm-2 col-form-label">Email</label>
+                                <div className="col-sm-10">
+                                    <JqxDropDownList ref={this.ddlXa}
+                                        width={'100%'} height={25} source={this.state.dmXa} selectedIndex={1}
+                                        dropDownHeight={200}
+                                        filterable={true}
+                                        displayMember="ten"
+                                        valueMember="ma"
+                                        filterPlaceHolder="Type for search"
+                                        searchMode="containsignorecase"
+                                        onChange={this.phuongXaOnChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="row container">
+                        <button type="submit" className="btn btn-dark" value="Basic">Basic</button>
+                    </div>
+                </form>
+            </div>
+
+        );
+    }
+}
+
+export default DiaChiMoi;
